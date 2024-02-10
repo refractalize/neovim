@@ -10,6 +10,16 @@ local function cursor_pos()
   return cursor[1] - 1, cursor[2]
 end
 
+--- @class vim.snippet.Snippet
+--- @field private _session? vim.snippet.Session
+--- @field public selected_text fun(): string?
+local M = {
+  session = nil,
+  selected_text = function()
+    return nil
+  end,
+}
+
 --- Resolves variables (like `$name` or `${name:default}`) as follows:
 --- - When a variable is unknown (i.e.: its name is not recognized in any of the cases below), return `nil`.
 --- - When a variable isn't set, return its default (if any) or an empty string.
@@ -29,8 +39,7 @@ local function resolve_variable(var, default)
   end
 
   if var == 'TM_SELECTED_TEXT' then
-    -- Snippets are expanded in insert mode only, so there's no selection.
-    return default
+    return M.selected_text() or default
   elseif var == 'TM_CURRENT_LINE' then
     return vim.api.nvim_get_current_line()
   elseif var == 'TM_CURRENT_WORD' then
@@ -217,10 +226,6 @@ function Session:get_dest_index(direction)
     end
   end
 end
-
---- @class vim.snippet.Snippet
---- @field private _session? vim.snippet.Session
-local M = { session = nil }
 
 --- Displays the choices for the given tabstop as completion items.
 ---
